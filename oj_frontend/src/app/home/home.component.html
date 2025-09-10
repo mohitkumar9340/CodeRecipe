@@ -1,0 +1,121 @@
+<div class="app-container">
+    <div>
+        <app-header></app-header>
+    </div>
+
+    <div>
+        <mat-toolbar color="primary" class="app-toolbar">
+            <span class="title">All Problems</span>
+        </mat-toolbar>
+    </div>
+
+    <!-- <div class="filter-sort-search">
+        <mat-form-field appearance="fill" class="search-field">
+            <mat-icon matPrefix>search</mat-icon>
+            <input matInput [(ngModel)]="searchQuery" placeholder="Search problems" (input)="applyFilters()">
+        </mat-form-field>
+        <mat-form-field appearance="fill">
+            <mat-label>Difficulty</mat-label>
+            <mat-select [(ngModel)]="selectedDifficulty" (selectionChange)="applyFilters()">
+                <mat-option value="">All</mat-option>
+                <mat-option *ngFor="let difficulty of difficulties" [value]="difficulty">
+                    {{ difficulty }}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+            <mat-label>Tags</mat-label>
+            <mat-select multiple [(ngModel)]="selectedTags" (selectionChange)="applyFilters()">
+                <mat-option *ngFor="let tag of allTags" [value]="tag.name">
+                    {{ tag.name }}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+        <mat-slide-toggle [(ngModel)]="hideTags" (change)="applyFilters()">
+            Hide Tags
+        </mat-slide-toggle>
+    </div> -->
+
+    <div class="filter-sort-search">
+        <mat-form-field appearance="fill" class="search-field">
+            <mat-icon matPrefix>search</mat-icon>
+            <input matInput [(ngModel)]="searchQuery" placeholder="Search problems" (input)="applyFilters()">
+        </mat-form-field>
+        <mat-form-field appearance="fill" class="difficulty-field">
+            <mat-label>Difficulty</mat-label>
+            <mat-select [(ngModel)]="selectedDifficulty" (selectionChange)="applyFilters()">
+                <mat-option value="">All</mat-option>
+                <mat-option *ngFor="let difficulty of difficulties" [value]="difficulty">
+                    {{ difficulty }}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="tags-field">
+            <mat-label>Tags</mat-label>
+            <mat-select multiple [(ngModel)]="selectedTags" (selectionChange)="applyFilters()">
+                <mat-option *ngFor="let tag of allTags" [value]="tag.name">
+                    {{ tag.name }}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <mat-slide-toggle [(ngModel)]="hideTags" (change)="applyFilters()">
+            Hide Tags
+        </mat-slide-toggle>
+    </div>
+
+
+    <div class="app-content">
+        <mat-card *ngFor="let problem of filteredProblems; let i = index" class="problem-card">
+            <mat-card-content class="problem-item">
+
+                <!-- <div class="problem-info">
+                    <span class="problem-index">{{i + 1}}.</span>
+                    <a [routerLink]="['/problem', problem.id]" class="problem-title" matLine>
+                        {{ problem.title }}
+                    </a>
+                </div>
+
+                <div class="tags" *ngIf="!hideTags">
+                    <mat-chip-listbox>
+                        <mat-chip *ngFor="let tag of problem.tag_names" color="accent" class="tag-chip">
+                            {{ tag }}
+                        </mat-chip>
+                    </mat-chip-listbox>
+                </div> -->
+                <div class="problem-info">
+                    <!-- Question Title -->
+                    <span class="problem-index">{{ i + 1 + (currentPage - 1) * problemsPerPage }}.</span>
+                    <a [routerLink]="['/problem', problem.id]" class="problem-title" matLine>
+                        {{ problem.title }}
+                    </a>
+
+
+                    <!-- Display Tags (Hide based on toggle) -->
+
+                    <span class="difficulty-badge" [ngClass]="{
+                          'easy': problem.difficulty === 'Easy', 
+                          'medium': problem.difficulty === 'Medium', 
+                          'hard': problem.difficulty === 'Hard'
+                      }">
+                        {{ problem.difficulty }}
+                    </span>
+                </div>
+                <div class="tags" *ngIf="!hideTags">
+                    <mat-chip-listbox>
+                        <mat-chip *ngFor="let tag of problem.tag_names" color="accent" class="tag-chip">
+                            {{ tag }}
+                        </mat-chip>
+                    </mat-chip-listbox>
+                </div>
+
+            </mat-card-content>
+            <mat-divider></mat-divider>
+        </mat-card>
+        
+    </div>
+    <mat-paginator [length]="totalProblems" [pageSize]="problemsPerPage" (page)="onPageChange($event)" aria-label="Select page">
+    </mat-paginator>
+</div>

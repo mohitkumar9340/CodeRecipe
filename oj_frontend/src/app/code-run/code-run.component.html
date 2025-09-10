@@ -1,0 +1,69 @@
+<app-header></app-header>
+<div class="code-runner-container mat-elevation-z4">
+    <!-- Toolbar with Language Selection and Run Button -->
+    <div class="instruction-text">
+        <p>Select a programming language from the dropdown, and the code editor will be pre-filled with sample code.
+            Write your code, input any required data, and click the "Run Code" button to see the output.</p>
+    </div>
+    <div class="toolbar">
+        <mat-form-field appearance="outline" class="language-select">
+            <mat-label>Language</mat-label>
+            <mat-select [(ngModel)]="selectedLanguage" (selectionChange)="onLanguageChange($event.value)">
+                <mat-option *ngFor="let language of languages" [value]="language">{{ language }}</mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" class="run-button" (click)="runCode()">
+            <mat-icon>play_arrow</mat-icon>
+            Run Code
+        </button>
+    </div>
+
+    <!-- Split layout for the Code Editor and Input/Output Section -->
+    <as-split direction="horizontal" class="write-section">
+        <!-- Code Editor Section -->
+        <as-split-area size="50">
+            <mat-form-field appearance="fill" class="full-width">
+                <mat-label>Code Editor</mat-label>
+                <textarea matInput [(ngModel)]="code" rows="20"></textarea>
+            </mat-form-field>
+        </as-split-area>
+
+        <!-- Input/Output Section -->
+        <as-split-area size="50">
+            <div class="input-output-container">
+                <div class="input-output-content">
+                    <mat-form-field appearance="fill" class="full-width">
+                        <mat-label>Input</mat-label>
+                        <textarea matInput [(ngModel)]="input" rows="8"></textarea>
+                    </mat-form-field>
+
+                    <!-- Draggable Divider -->
+                    <div class="divider" (mousedown)="onMouseDown($event)"></div>
+
+                    <mat-form-field appearance="fill" class="full-width">
+                        <mat-label>Output</mat-label>
+                        <textarea matInput [(ngModel)]="output" rows="2" readonly ></textarea>
+                        <span *ngIf="!output && !error" class="output-placeholder">
+                            Click on RUN button to see the output
+                        </span>
+                        <span *ngIf="error" class="error-message">
+                            <mat-icon color="warn">warning</mat-icon> {{ cleanError }}
+                        </span>
+                        <!-- <textarea matInput [(ngModel)]="output" rows="8" readonly *ngIf="output"></textarea> -->
+
+                        <!-- Show error in the same place if there is an error -->
+                        <!-- <div class="error-message" *ngIf="!output && error">
+                            <mat-icon color="warn">warning</mat-icon> {{ error }}
+                        </div> -->
+
+                        <!-- Placeholder when no output or error is present -->
+                        <!-- <div class="output-placeholder" *ngIf="!output && !error">
+                            Click on RUN button to see the output
+                        </div> -->
+                    </mat-form-field>
+                </div>
+            </div>
+        </as-split-area>
+    </as-split>
+</div>

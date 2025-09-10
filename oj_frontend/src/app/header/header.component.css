@@ -1,0 +1,66 @@
+.leetcode-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  width: 100%;
+  background-color: #f5f5f5; /* Light background color */
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.nav-links a {
+  color: #333;
+  text-decoration: none;
+  margin-right: 20px;
+  font-size: 16px;
+  font-weight: 500;
+  transition: color 0.3s, border-bottom 0.3s;
+}
+
+/* .nav-links a {
+    color: white;
+    text-decoration: none;
+    margin-right: 10px;
+} */
+
+.nav-links a:hover {
+  color: #007bff; /* Vibrant blue for hover */
+  border-bottom: 2px solid #007bff; /* Underline effect */
+}
+
+.profile-menu {
+  position: relative;
+}
+
+button {
+  color: #333;
+  font-size: 16px;
+  background-color: transparent;
+}
+
+mat-menu {
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff; /* White background for dropdown */
+}
+
+mat-menu-item {
+  display: flex;
+  align-items: center;
+}
+
+mat-menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+mat-icon {
+  margin-right: 12px;
+}
+

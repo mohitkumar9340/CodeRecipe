@@ -1,0 +1,49 @@
+<div class="registration-container">
+    <h1>Registration</h1>
+    <form #registrationForm="ngForm" (ngSubmit)="onSubmit()">
+      <mat-card class="registration-card">
+        <mat-card-content>
+          <div>
+            <mat-form-field appearance="outline">
+              <mat-label>User Name</mat-label>
+              <input name="username" matInput [(ngModel)]="username">
+            </mat-form-field>
+          </div>
+          <div>
+            <mat-form-field appearance="outline">
+              <mat-label>Enter your email</mat-label>
+              <input name="email" type="email" matInput placeholder="pat@example.com" [formControl]="emailFormControl" [errorStateMatcher]="matcher">
+              <!-- <mat-hint>Errors appear instantly!</mat-hindt> -->
+              @if (emailFormControl.hasError('email') && !emailFormControl.hasError('required')) {
+                <mat-error>Please enter a valid email address</mat-error>
+              }
+              @if (emailFormControl.hasError('required')) {
+                <mat-error>Email is <strong>required</strong></mat-error>
+              }
+            </mat-form-field>
+          </div>
+          <div>
+            <mat-form-field appearance="outline">
+              <mat-label>Enter your password</mat-label>
+              <input matInput name="password" [type]="hide ? 'password' : 'text'" [(ngModel)]="password" required>
+              <button mat-icon-button matSuffix (click)="clickEvent($event)" [attr.aria-label]="'Hide password'"
+                [attr.aria-pressed]="hide">
+                <mat-icon>{{hide ? 'visibility_off' : 'visibility'}}</mat-icon>
+              </button>
+            </mat-form-field>
+          </div>
+          <p>Already have an account? <a routerLink="/login-component">Login</a></p>
+          <div class="button-group">
+            <button mat-raised-button color="primary" type="submit" [disabled]="!registrationForm.form.valid">
+              Register
+            </button>
+            <!-- Guest Login Button -->
+            <button mat-raised-button color="accent" type="button" (click)="guestLogin()">
+              Guest Login
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </form>
+  </div>
+  

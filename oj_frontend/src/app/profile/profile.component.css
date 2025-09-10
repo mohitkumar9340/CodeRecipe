@@ -1,0 +1,54 @@
+/* user-profile.component.scss */
+
+
+mat-card-header {
+    margin-bottom: 16px;
+    /* Add gap between title and content */
+}
+
+.profile-card {
+    max-width: 600px;
+    margin: auto;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.profile-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.profile-label {
+    min-width: 120px;
+    /* Define a consistent width for all labels */
+    font-weight: bold;
+}
+
+.profile-value {
+    margin-left: 20px;
+    /* Add space between the label and value */
+}
+
+.profile-item mat-icon {
+    margin-right: 8px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 8px;
+}
+
+mat-form-field {
+    width: 100%;
+}
+
+mat-card-actions {
+    text-align: center;
+}

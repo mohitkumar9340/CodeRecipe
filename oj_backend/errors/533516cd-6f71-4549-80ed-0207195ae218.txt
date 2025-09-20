@@ -1,0 +1,4 @@
+  File "/Users/amritanand/Desktop/myWork/frontend/CoderHub/oj_backend/codes/533516cd-6f71-4549-80ed-0207195ae218.python", line 1
+    print('Hello, world)
+          ^
+SyntaxError: unterminated string literal (detected at line 1)

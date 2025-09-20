@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/Users/amritanand/Desktop/myWork/frontend/CoderHub/oj_backend/codes/b0ab9c20-8891-480b-b2d0-c35427d6d4f0.python", line 1, in <module>
+    num1 = int(input())
+               ^^^^^^^
+EOFError: EOF when reading a line

@@ -1,0 +1,5 @@
+/Users/amritanand/Desktop/myWork/frontend/CoderHub/oj_backend/codes/1fcd6ce6-2c5d-4037-9c93-fd4efea83ef8.cpp:5:33: error: expected ';' after expression
+    5 |          cout << "Hello, world!" <<endl
+      |                                        ^
+      |                                        ;
+1 error generated.

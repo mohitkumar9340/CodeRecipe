@@ -1,0 +1,5 @@
+/Users/amritanand/Desktop/myWork/frontend/CoderHub/oj_backend/codes/761cc635-92d8-4623-9082-8e3c1d7e6488.c:4:25: error: expected ';' after expression
+    4 |         printf("Hello, world!")
+      |                                ^
+      |                                ;
+1 error generated.

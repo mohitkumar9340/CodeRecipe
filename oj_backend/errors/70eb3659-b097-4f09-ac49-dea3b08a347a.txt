@@ -1,0 +1,4 @@
+  File "/Users/amritanand/Desktop/myWork/frontend/CoderHub/oj_backend/codes/70eb3659-b097-4f09-ac49-dea3b08a347a.python", line 1
+    print('Hello, world!'
+         ^
+SyntaxError: '(' was never closed

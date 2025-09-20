@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/Users/amritanand/Desktop/myWork/frontend/CoderHub/oj_backend/codes/07c1a6e8-f263-462d-9a54-6b0c1ff17fcf.python", line 2, in <module>
+    num2 = int(input())
+           ^^^^^^^^^^^^
+ValueError: invalid literal for int() with base 10: ''

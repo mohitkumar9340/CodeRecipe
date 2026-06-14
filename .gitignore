@@ -1,4 +1,35 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+*.egg
+venv/
+
+# Django
+oj_backend/db.sqlite3
 oj_backend/inputs/
 oj_backend/outputs/
 oj_backend/codes/
+oj_backend/errors/
+
+# Node / Angular
+oj_frontend/node_modules/
+oj_frontend/.angular/
+oj_frontend/dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Keys
 keys
+*.pem
+*.key

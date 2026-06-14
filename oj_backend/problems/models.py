@@ -16,8 +16,10 @@ class Tag(models.Model):
         return self.name
 
 class Problem(models.Model):
-    title = models.CharField(max_length=25)
+    title = models.CharField(max_length=100)
     description = models.TextField()
+    input_format = models.TextField(blank=True, help_text="Description of input format")
+    output_format = models.TextField(blank=True, help_text="Description of output format")
     difficulty = models.CharField(
         max_length=10,
         blank=True,
@@ -25,8 +27,10 @@ class Problem(models.Model):
     )
     tags = models.ManyToManyField(Tag, related_name='problems')
     constraints = models.TextField(blank=True)
+    time_limit = models.FloatField(default=1.0, help_text="Time limit in seconds")
+    memory_limit = models.IntegerField(default=256, help_text="Memory limit in MB")
     def __str__(self):
-        return f"{self.id}"
+        return f"{self.id}. {self.title}"
     
 class Submission(models.Model):
     problem = models.ForeignKey(Problem, on_delete=models.CASCADE)
@@ -35,6 +39,8 @@ class Submission(models.Model):
     verdict = models.CharField(max_length=50)
     timestamp = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
+    execution_time = models.FloatField(null=True, blank=True, help_text="Execution time in seconds")
+    memory_used = models.IntegerField(null=True, blank=True, help_text="Memory used in KB")
 
 class RunCode(models.Model):
     language = models.CharField(max_length=100)

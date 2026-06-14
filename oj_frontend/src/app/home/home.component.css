@@ -30,6 +30,10 @@
   min-width: 150px;
 }
 
+.status-field {
+  min-width: 150px;
+}
+
 .tags-field {
   min-width: 200px;
 }

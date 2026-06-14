@@ -1,9 +1,5 @@
 <div class="app-container">
     <div>
-        <app-header></app-header>
-    </div>
-
-    <div>
         <mat-toolbar color="primary" class="app-toolbar">
             <span class="title">All Problems</span>
         </mat-toolbar>
@@ -38,6 +34,16 @@
             </mat-select>
         </mat-form-field>
 
+        <mat-form-field appearance="fill" class="status-field">
+            <mat-label>Status</mat-label>
+            <mat-select [(ngModel)]="selectedStatus" (selectionChange)="applyFilters()">
+                <mat-option value="">All</mat-option>
+                <mat-option *ngFor="let status of statuses" [value]="status">
+                    {{ status }}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+
         <mat-form-field appearance="fill" class="tags-field">
             <mat-label>Tags</mat-label>
             <mat-select multiple [(ngModel)]="selectedTags" (selectionChange)="applyFilters()">
@@ -53,7 +59,7 @@
     </div>
 
     <div class="app-content">
-        <mat-card *ngFor="let problem of filteredProblems; let i = index" class="problem-card">
+        <mat-card *ngFor="let problem of problems; let i = index" class="problem-card">
             <mat-card-content class="problem-item">
                 <div class="problem-info">
                     <span class="problem-index">{{ i + 1 + (currentPage - 1) * problemsPerPage }}.</span>

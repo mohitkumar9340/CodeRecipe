@@ -74,7 +74,7 @@ An input string is valid if:
                 "input_format": "A single line containing the string `s` consisting of brackets only.",
                 "output_format": "Print `true` if the string is valid, otherwise print `false`.",
                 "difficulty": "Easy",
-                "tags": ["Strings", "Stacks"],
+                "tags": ["Strings", "Stack"],
                 "constraints": """- \\(1 \\leq |s| \\leq 10^4\\)
 - \\(s\\) consists of parentheses only: `'()[]{}'`""",
                 "time_limit": 1.0,

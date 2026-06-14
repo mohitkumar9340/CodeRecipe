@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ProblemService } from '../service/problem.service';
 import { RouterLink } from '@angular/router';
-import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatListModule } from '@angular/material/list';
@@ -10,7 +9,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatDividerModule } from '@angular/material/divider';
-import { HeaderComponent } from '../header/header.component';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
@@ -26,7 +24,7 @@ import { MatPaginatorModule } from '@angular/material/paginator';
   imports: [
     RouterLink, CommonModule, MatFormFieldModule, MatListModule, MatIconModule,
     MatButtonModule, MatCardModule, MatToolbarModule, MatDividerModule,
-    HeaderComponent, MatChipsModule, MatSelectModule, MatSlideToggleModule,
+    MatChipsModule, MatSelectModule, MatSlideToggleModule,
     FormsModule, MatInputModule, MatFormField, MatPaginatorModule
   ],
   templateUrl: './home.component.html',
@@ -35,11 +33,11 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 export class HomeComponent implements OnInit {
   problems: any[] = [];
   allTags: any[] = [];
-  filteredProblems: any[] = [];
   selectedDifficulty: string = '';
+  selectedStatus: string = '';
   selectedTags: string[] = [];
-  selectedSort: string = 'title';
   difficulties = ['Easy', 'Medium', 'Hard'];
+  statuses = ['Solved', 'Attempted', 'Unsolved'];
   hideTags: boolean = false;
   searchQuery: string = '';
   totalProblems = 0;
@@ -92,11 +90,19 @@ export class HomeComponent implements OnInit {
     }
   }
 
+  private get filterParams() {
+    return {
+      difficulty: this.selectedDifficulty || undefined,
+      search: this.searchQuery || undefined,
+      tags: this.selectedTags.length ? this.selectedTags.join(',') : undefined,
+      status: this.selectedStatus.toLowerCase() || undefined
+    };
+  }
+
   getProblems(page: number) {
-    this.problemService.getProblems(page).subscribe(
+    this.problemService.getProblems(page, this.filterParams).subscribe(
       (data) => {
         this.problems = data.problems;
-        this.filteredProblems = data.problems;
         this.totalProblems = data.total_problems;
       },
       (error) => { console.error('Error fetching problems', error); }
@@ -104,25 +110,8 @@ export class HomeComponent implements OnInit {
   }
 
   applyFilters() {
-    this.filteredProblems = this.problems.filter((problem) => {
-      const matchesSearchQuery = problem.title.toLowerCase().includes(this.searchQuery.toLowerCase());
-      const matchesDifficulty = this.selectedDifficulty ? problem.difficulty === this.selectedDifficulty : true;
-      const matchesTags = this.selectedTags.length
-        ? this.selectedTags.every(tag =>
-            Array.isArray(problem.tag_names) && problem.tag_names.some((pTagName: string) => pTagName === tag)
-          )
-        : true;
-      return matchesSearchQuery && matchesDifficulty && matchesTags;
-    });
-  }
-
-  applySorting(): void {
-    if (this.selectedSort === 'title') {
-      this.filteredProblems.sort((a, b) => a.title.localeCompare(b.title));
-    } else if (this.selectedSort === 'difficulty') {
-      const order: { [key: string]: number } = { 'Easy': 1, 'Medium': 2, 'Hard': 3 };
-      this.filteredProblems.sort((a, b) => order[a.difficulty] - order[b.difficulty]);
-    }
+    this.currentPage = 1;
+    this.getProblems(1);
   }
 
   onPageChange(event: PageEvent) {

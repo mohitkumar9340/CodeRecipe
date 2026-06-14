@@ -2,6 +2,10 @@ from rest_framework import serializers
 from .models import Problem, TestCases, Submission, RunCode, Tag, Example
 
 
+def _get_tag_names(obj):
+    return [tag.name for tag in obj.tags.all()]
+
+
 class ProblemSerializer(serializers.ModelSerializer):
     tag_names = serializers.SerializerMethodField()
 
@@ -11,7 +15,7 @@ class ProblemSerializer(serializers.ModelSerializer):
                   'difficulty', 'tag_names', 'constraints', 'time_limit', 'memory_limit']
 
     def get_tag_names(self, obj):
-        return [tag.name for tag in obj.tags.all()]
+        return _get_tag_names(obj)
 
 
 class ProblemListSerializer(serializers.ModelSerializer):
@@ -23,18 +27,17 @@ class ProblemListSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'difficulty', 'tag_names', 'user_status']
 
     def get_tag_names(self, obj):
-        return [tag.name for tag in obj.tags.all()]
+        return _get_tag_names(obj)
 
     def get_user_status(self, obj):
         request = self.context.get('request')
         if not request or not request.user.is_authenticated:
             return 'Unsolved'
-        submissions = Submission.objects.filter(problem=obj, user=request.user)
-        if not submissions.exists():
-            return 'Unsolved'
-        if submissions.filter(verdict='All testcases passed').exists():
+        if hasattr(obj, 'has_accepted') and obj.has_accepted:
             return 'Solved'
-        return 'Attempted'
+        if hasattr(obj, 'has_submission') and obj.has_submission:
+            return 'Attempted'
+        return 'Unsolved'
 
 
 class AddProblemSerializer(serializers.ModelSerializer):
@@ -43,7 +46,7 @@ class AddProblemSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class AddTestCaseSeriallzer(serializers.ModelSerializer):
+class AddTestCaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = TestCases
         fields = "__all__"
@@ -72,3 +75,9 @@ class ExampleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Example
         fields = "__all__"
+
+
+class SubmitCodeSerializer(serializers.Serializer):
+    language = serializers.ChoiceField(choices=['c', 'c++', 'python', 'java'])
+    code = serializers.CharField(min_length=1)
+    problem = serializers.IntegerField()

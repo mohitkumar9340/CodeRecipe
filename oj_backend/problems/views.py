@@ -1,18 +1,19 @@
 from django.shortcuts import render
+from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import Problem, TestCases, Submission, Tag, Example
 from .serializers import (
     ProblemSerializer, ProblemListSerializer, AddProblemSerializer,
-    AddTestCaseSeriallzer, SubmissionSerializer, RunCodeSerializer,
-    TagSerializer, ExampleSerializer
+    AddTestCaseSerializer, SubmissionSerializer, RunCodeSerializer,
+    TagSerializer, ExampleSerializer, SubmitCodeSerializer
 )
 from rest_framework.response import Response
 from .judge.compiler import Compiler
 from .judge.judge import Judge
-from datetime import datetime
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.db.models import Exists, OuterRef
 
 compiler = Compiler()
 judge = Judge()
@@ -40,6 +41,44 @@ class ProblemListAPIView(APIView):
 
     def get(self, request):
         problems = Problem.objects.all().prefetch_related('tags')
+
+        difficulty = request.GET.get('difficulty')
+        if difficulty:
+            problems = problems.filter(difficulty=difficulty)
+
+        search = request.GET.get('search')
+        if search:
+            problems = problems.filter(title__icontains=search)
+
+        tags = request.GET.get('tags')
+        if tags:
+            tag_list = [t.strip() for t in tags.split(',') if t.strip()]
+            for tag_name in tag_list:
+                problems = problems.filter(tags__name=tag_name)
+
+        if request.user.is_authenticated:
+            problems = problems.annotate(
+                has_submission=Exists(
+                    Submission.objects.filter(
+                        problem=OuterRef('pk'), user=request.user
+                    )
+                ),
+                has_accepted=Exists(
+                    Submission.objects.filter(
+                        problem=OuterRef('pk'), user=request.user,
+                        verdict='All testcases passed'
+                    )
+                ),
+            )
+
+            status = request.GET.get('status')
+            if status == 'solved':
+                problems = problems.filter(has_accepted=True)
+            elif status == 'attempted':
+                problems = problems.filter(has_submission=True, has_accepted=False)
+            elif status == 'unsolved':
+                problems = problems.filter(has_submission=False)
+
         page = request.GET.get('page', 1)
         paginator = Paginator(problems, 20)
         try:
@@ -65,14 +104,17 @@ class ProblemDetailAPIView(APIView):
 
     def get(self, request, *args, **kwargs):
         problem_id = self.kwargs['id']
-        problem = Problem.objects.get(id=problem_id)
+        try:
+            problem = Problem.objects.get(id=problem_id)
+        except Problem.DoesNotExist:
+            return Response({"error": "Problem not found"}, status=404)
+
         serializer = ProblemSerializer(problem)
         examples = Example.objects.filter(problem=problem)
         examples_serializer = ExampleSerializer(examples, many=True)
         response_data = serializer.data
         response_data['examples'] = examples_serializer.data
 
-        # Add user status
         if request.user.is_authenticated:
             submissions = Submission.objects.filter(problem=problem, user=request.user)
             if not submissions.exists():
@@ -88,11 +130,11 @@ class ProblemDetailAPIView(APIView):
 
 
 class AddTestCaseAPIView(APIView):
-    serializer_class = AddTestCaseSeriallzer
+    serializer_class = AddTestCaseSerializer
     permission_classes = [AllowAny]
 
     def post(self, request):
-        serializer = AddTestCaseSeriallzer(data=request.data)
+        serializer = AddTestCaseSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=201)
@@ -103,26 +145,30 @@ class SubmitCodeAPIView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        language = request.data.get("language")
-        code = request.data.get("code")
-        problem_id = request.data.get("problem")
+        serializer = SubmitCodeSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=400)
 
-        if not all([language, code, problem_id]):
-            return Response({"error": "Missing required fields"}, status=400)
+        language = serializer.validated_data["language"]
+        code = serializer.validated_data["code"]
+        problem_id = serializer.validated_data["problem"]
+
+        try:
+            problem = Problem.objects.get(id=problem_id)
+        except Problem.DoesNotExist:
+            return Response({"error": "Problem not found"}, status=404)
 
         judge_result = judge.run_testcases(
             problem_id=problem_id, language=language, code=code
         )
         verdict_str = judge_result['verdict']
-        time_now = datetime.now()
-        problem = Problem.objects.get(id=problem_id)
 
         submission_data = {
             'problem': problem,
             'language': language,
             'code': code,
             'verdict': verdict_str,
-            'timestamp': time_now,
+            'timestamp': timezone.now(),
             'execution_time': judge_result.get('execution_time', 0),
             'memory_used': judge_result.get('memory_used', 0),
         }
@@ -147,9 +193,9 @@ class RunCodeAPIView(APIView):
     def post(self, request):
         serializer = RunCodeSerializer(data=request.data)
         if serializer.is_valid():
-            language = serializer.data["language"]
-            code = serializer.data["code"]
-            input_data = serializer.data.get("input_data", "")
+            language = serializer.validated_data["language"]
+            code = serializer.validated_data["code"]
+            input_data = serializer.validated_data.get("input_data", "")
             res = compiler.run_code(language=language, code=code, input_data=input_data)
             return Response(res, status=200)
         return Response(serializer.errors, status=400)
@@ -180,7 +226,13 @@ class SubmissionListAPIView(APIView):
 
     def get(self, request):
         problem_id = request.GET.get('id')
-        problem = Problem.objects.get(id=problem_id)
+        if not problem_id:
+            return Response({"error": "Missing problem id"}, status=400)
+
+        try:
+            problem = Problem.objects.get(id=problem_id)
+        except Problem.DoesNotExist:
+            return Response({"error": "Problem not found"}, status=404)
 
         if request.user.is_authenticated:
             submissions = Submission.objects.filter(

@@ -53,7 +53,7 @@ export class ProblemComponent implements OnInit {
   judgingStatus: string = '';
   editorOptions = {
     theme: 'vs-dark', language: 'python', minimap: { enabled: false },
-    fontSize: 14, automaticLayout: true, scrollBeyondLastLine: false, wordWrap: 'on' as const,
+    fontSize: 16, automaticLayout: true, scrollBeyondLastLine: false, wordWrap: 'on' as const,
     padding: { top: 4 }
   };
   languageSamples: { [key: string]: string } = {
@@ -194,7 +194,7 @@ export class ProblemComponent implements OnInit {
 export class ViewSubmissionDialogComponent {
   viewEditorOptions = {
     theme: 'vs-dark', language: 'python', minimap: { enabled: false },
-    fontSize: 13, automaticLayout: true, readOnly: true,
+    fontSize: 15, automaticLayout: true, readOnly: true,
     scrollBeyondLastLine: false, wordWrap: 'on' as const
   };
 

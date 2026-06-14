@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -20,20 +19,15 @@ judge = Judge()
 
 
 class AddProblemAPIView(APIView):
-    queryset = Problem.objects.all()
-    serializer_class = ProblemSerializer
-
     def post(self, request):
         serializer = AddProblemSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
-
-    def get(self, request):
-        problems = Problem.objects.filter()
-        serializer = ProblemSerializer(problems, many=True)
-        return Response(serializer.data, status=200)
+            return Response({"message": "Problem created successfully", **serializer.data}, status=201)
+        errors = serializer.errors
+        first = next(iter(errors.values()))
+        msg = first[0] if isinstance(first, list) else first
+        return Response({"message": msg, "errors": errors}, status=400)
 
 
 class ProblemListAPIView(APIView):
@@ -79,7 +73,10 @@ class ProblemListAPIView(APIView):
             elif status == 'unsolved':
                 problems = problems.filter(has_submission=False)
 
-        page = request.GET.get('page', 1)
+        try:
+            page = int(request.GET.get('page', 1))
+        except (ValueError, TypeError):
+            page = 1
         paginator = Paginator(problems, 20)
         try:
             paginated_problems = paginator.page(page)
@@ -107,7 +104,7 @@ class ProblemDetailAPIView(APIView):
         try:
             problem = Problem.objects.get(id=problem_id)
         except Problem.DoesNotExist:
-            return Response({"error": "Problem not found"}, status=404)
+            return Response({"message": "Problem not found"}, status=404)
 
         serializer = ProblemSerializer(problem)
         examples = Example.objects.filter(problem=problem)
@@ -130,15 +127,17 @@ class ProblemDetailAPIView(APIView):
 
 
 class AddTestCaseAPIView(APIView):
-    serializer_class = AddTestCaseSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         serializer = AddTestCaseSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
+            return Response({"message": "Test case added successfully", **serializer.data}, status=201)
+        errors = serializer.errors
+        first = next(iter(errors.values()))
+        msg = first[0] if isinstance(first, list) else first
+        return Response({"message": msg, "errors": errors}, status=400)
 
 
 class SubmitCodeAPIView(APIView):
@@ -147,7 +146,10 @@ class SubmitCodeAPIView(APIView):
     def post(self, request):
         serializer = SubmitCodeSerializer(data=request.data)
         if not serializer.is_valid():
-            return Response(serializer.errors, status=400)
+            errors = serializer.errors
+            first = next(iter(errors.values()))
+            msg = first[0] if isinstance(first, list) else first
+            return Response({"message": msg, "errors": errors}, status=400)
 
         language = serializer.validated_data["language"]
         code = serializer.validated_data["code"]
@@ -156,7 +158,7 @@ class SubmitCodeAPIView(APIView):
         try:
             problem = Problem.objects.get(id=problem_id)
         except Problem.DoesNotExist:
-            return Response({"error": "Problem not found"}, status=404)
+            return Response({"message": "Problem not found"}, status=404)
 
         judge_result = judge.run_testcases(
             problem_id=problem_id, language=language, code=code
@@ -178,13 +180,14 @@ class SubmitCodeAPIView(APIView):
         submission = Submission.objects.create(**submission_data)
 
         response_data = {
+            'message': 'Solution submitted successfully',
             'id': submission.id,
             'verdict': verdict_str,
             'results': judge_result['results'],
             'execution_time': judge_result.get('execution_time', 0),
             'memory_used': judge_result.get('memory_used', 0),
         }
-        return Response(response_data, status=201)
+        return Response(response_data, status=200)
 
 
 class RunCodeAPIView(APIView):
@@ -197,19 +200,25 @@ class RunCodeAPIView(APIView):
             code = serializer.validated_data["code"]
             input_data = serializer.validated_data.get("input_data", "")
             res = compiler.run_code(language=language, code=code, input_data=input_data)
-            return Response(res, status=200)
-        return Response(serializer.errors, status=400)
+            return Response({"message": "Code executed successfully", **res}, status=200)
+        errors = serializer.errors
+        first = next(iter(errors.values()))
+        msg = first[0] if isinstance(first, list) else first
+        return Response({"message": msg, "errors": errors}, status=400)
 
 
 class AddTagAPIView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         serializer = TagSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
+            return Response({"message": "Tag added successfully", **serializer.data}, status=201)
+        errors = serializer.errors
+        first = next(iter(errors.values()))
+        msg = first[0] if isinstance(first, list) else first
+        return Response({"message": msg, "errors": errors}, status=400)
 
 
 class TagListAPIView(APIView):
@@ -227,21 +236,19 @@ class SubmissionListAPIView(APIView):
     def get(self, request):
         problem_id = request.GET.get('id')
         if not problem_id:
-            return Response({"error": "Missing problem id"}, status=400)
+            return Response({"message": "Missing problem id"}, status=400)
 
         try:
             problem = Problem.objects.get(id=problem_id)
         except Problem.DoesNotExist:
-            return Response({"error": "Problem not found"}, status=404)
+            return Response({"message": "Problem not found"}, status=404)
 
-        if request.user.is_authenticated:
-            submissions = Submission.objects.filter(
-                user=request.user, problem=problem
-            ).order_by('-timestamp')
-        else:
-            submissions = Submission.objects.filter(
-                problem=problem
-            ).order_by('-timestamp')
+        if not request.user.is_authenticated:
+            return Response({"message": "Authentication required"}, status=401)
+
+        submissions = Submission.objects.filter(
+            user=request.user, problem=problem
+        ).order_by('-timestamp')
 
         serializer = SubmissionSerializer(submissions, many=True)
         return Response(serializer.data, status=200)

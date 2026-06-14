@@ -65,7 +65,7 @@ export class CodeRunComponent {
     theme: 'vs-dark',
     language: 'python',
     minimap: { enabled: false },
-    fontSize: 14,
+    fontSize: 16,
     automaticLayout: true,
     scrollBeyondLastLine: false,
     wordWrap: 'on' as const,

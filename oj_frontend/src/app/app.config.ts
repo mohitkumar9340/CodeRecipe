@@ -6,6 +6,7 @@ import { provideClientHydration } from '@angular/platform-browser';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from './auth.interceptor';
+import { toastInterceptor } from './toast.interceptor';
 import { provideMonacoEditor } from 'ngx-monaco-editor-v2';
 
 export const appConfig: ApplicationConfig = {
@@ -15,7 +16,7 @@ export const appConfig: ApplicationConfig = {
   provideAnimationsAsync(),
   provideHttpClient(
     withFetch(),
-    withInterceptors([authInterceptor])
+    withInterceptors([authInterceptor, toastInterceptor])
   ),
   provideMonacoEditor({
     baseUrl: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.50.0/min/vs'

@@ -2,21 +2,31 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['username', 'email', 'password']
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'email': {'required': True},
+        }
+
+    def validate_password(self, value):
+        try:
+            validate_password(value)
+        except ValidationError as e:
+            raise serializers.ValidationError(e.messages)
+        return value
 
     def create(self, data):
         username = data["username"]
         email = data["email"]
         password = data["password"]
 
-        user = User.objects.filter(username=username)
-        if user.exists():
-            raise serializers.ValidationError('Username already exists')
         user = User.objects.create_user(username=username, email=email, password=password)
         user.save()
         return user
@@ -30,11 +40,9 @@ class UserLoginSerializer(serializers.Serializer):
         username = data["username"]
         password = data["password"]
 
-        if not User.objects.filter(username=username).exists():
-            raise serializers.ValidationError('User with this username does not exist')
-        user = User.objects.get(username=username)
-        if not user.check_password(password):
-            raise serializers.ValidationError('Incorrect password')
+        user = authenticate(username=username, password=password)
+        if user is None:
+            raise serializers.ValidationError('Invalid username or password')
         token = RefreshToken.for_user(user)
         return {
             "username": user.username,

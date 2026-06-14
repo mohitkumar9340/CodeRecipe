@@ -62,12 +62,17 @@ export class ProfileComponent implements OnInit {
 
   ngOnInit(): void {
     this.userService.userDetails().subscribe((user: User) => {
-      this.user = user;    
+      this.user = user;
+      this.profileForm.patchValue({
+        name: user.name,
+        email: user.email,
+        username: user.username,
+      });
     });
     this.profileForm = this.fb.group({
-      name: [this.user.name, Validators.required],
-      email: [this.user.email, [Validators.required, Validators.email]],
-      username: [this.user.username, Validators.required],
+      name: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      username: ['', Validators.required],
     });
   }
 

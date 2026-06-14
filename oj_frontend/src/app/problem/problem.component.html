@@ -1,102 +1,63 @@
 <app-header></app-header>
-<!-- <p>problem works!</p>
-<p>problem works!</p> -->
-<!-- problem-detail.component.html -->
 <mat-toolbar color="primary">
-  <span class="title">{{ problem?.title }}</span>
+  <span>{{ problem?.title }}</span>
+  <span class="title-spacer"></span>
+  <span class="status-badge" *ngIf="problem?.user_status" [ngClass]="{
+    'status-solved': problem?.user_status === 'Solved',
+    'status-attempted': problem?.user_status === 'Attempted',
+    'status-unsolved': problem?.user_status === 'Unsolved'
+  }">{{ problem?.user_status }}</span>
+  <span class="diff-badge" [ngClass]="{
+    'diff-easy': problem?.difficulty === 'Easy',
+    'diff-medium': problem?.difficulty === 'Medium',
+    'diff-hard': problem?.difficulty === 'Hard'
+  }">{{ problem?.difficulty }}</span>
+  <span class="limits-hint">{{ problem?.time_limit }}s / {{ problem?.memory_limit }}MB</span>
 </mat-toolbar>
 <div class="container">
-  <!-- <div class="question-panel">
-    <h5>Description:</h5>
-    <p>{{ problem?.description }}</p>
-    <h5>Constraints:</h5>
-    <p>{{ problem?.constraints }}</p>
+  <as-split direction="horizontal" class="split-panels">
+    <as-split-area [size]="45" [minSize]="30">
+      <mat-tab-group class="full-height">
+        <mat-tab label="Problem Details">
+          <div class="question-panel markdown-body">
+            <div [innerHTML]="problem?.description | markdown"></div>
 
-    <h5>Examples:</h5>
-    <div *ngFor="let example of problem?.examples">
-      <div class="example">
-        <h6>Input:</h6>
-        <pre>{{ example.input }}</pre>
-        <h6>Output:</h6>
-        <pre>{{ example.output }}</pre>
-        <h6>Explanation:</h6>
-        <p>{{ example.explanation }}</p>
-      </div>
-    </div>
-  </div> -->
-  <mat-tab-group>
-    <!-- Tab for Problem Details -->
-    <mat-tab label="Problem Details">
-      <div class="question-panel">
-        <h5>Description:</h5>
-        <p>{{ problem?.description }}</p>
-        <h5>Constraints:</h5>
-        <p>{{ problem?.constraints }}</p>
+            <h5 *ngIf="problem?.input_format">Input Format:</h5>
+            <div *ngIf="problem?.input_format" [innerHTML]="problem?.input_format | markdown"></div>
 
-        <h5>Examples:</h5>
-        <div *ngFor="let example of problem?.examples">
-          <div class="example">
-            <h6>Input:</h6>
-            <pre>{{ example.input }}</pre>
-            <h6>Output:</h6>
-            <pre>{{ example.output }}</pre>
-            <h6>Explanation:</h6>
-            <p>{{ example.explanation }}</p>
-          </div>
-        </div>
-      </div>
-    </mat-tab>
+            <h5 *ngIf="problem?.output_format">Output Format:</h5>
+            <div *ngIf="problem?.output_format" [innerHTML]="problem?.output_format | markdown"></div>
 
-    <!-- Tab for User Submissions -->
-    <mat-tab label="My Submissions">
-      <!-- <div class="submissions-panel">
-        <h5>Your Submissions:</h5>
-        <div *ngFor="let submission of userSubmissions">
-          <div class="submission">
-            <h6>Submission ID: {{ submission.id }}</h6>
-            <p>Status: {{ submission.status }}</p>
-            <p>Submitted On: {{ submission.submittedOn }}</p>
-            <h6>Input:</h6>
-            <pre>{{ submission.input }}</pre>
-            <h6>Output:</h6>
-            <pre>{{ submission.output }}</pre>
-            <h6>Language:</h6>
-            <p>{{ submission.language }}</p>
-          </div>
-        </div>
-      </div> -->
-      <mat-tab-group>
-        <!-- My Submissions Tab -->
-        <mat-tab label="My Submissions">
-          <div class="submissions-panel">
-            <table mat-table [dataSource]="mySubmissions" class="mat-elevation-z8">
-              <ng-container matColumnDef="verdict">
-                <th mat-header-cell *matHeaderCellDef> Verdict </th>
-                <td mat-cell *matCellDef="let submission"> {{ submission.verdict }} </td>
-              </ng-container>
+            <h5 *ngIf="problem?.constraints">Constraints:</h5>
+            <div *ngIf="problem?.constraints" [innerHTML]="problem?.constraints | markdown"></div>
 
-              <ng-container matColumnDef="language">
-                <th mat-header-cell *matHeaderCellDef> Language </th>
-                <td mat-cell *matCellDef="let submission"> {{ submission.language }} </td>
-              </ng-container>
-
-              <ng-container matColumnDef="view">
-                <th mat-header-cell *matHeaderCellDef> View </th>
-                <td mat-cell *matCellDef="let submission">
-                  <button mat-button (click)="viewSubmission(submission)">View</button>
-                </td>
-              </ng-container>
-
-              <tr mat-header-row *matHeaderRowDef="['verdict', 'language', 'view']"></tr>
-              <tr mat-row *matRowDef="let row; columns: ['verdict', 'language', 'view'];"></tr>
-            </table>
+            <h5>Examples:</h5>
+            <div *ngFor="let example of problem?.examples">
+              <div class="example">
+                <h6>Input:</h6>
+                <pre>{{ example.input }}</pre>
+                <button mat-icon-button class="copy-btn" (click)="copyText(example.input)" matTooltip="Copy input">
+                  <mat-icon>content_copy</mat-icon>
+                </button>
+                <h6>Output:</h6>
+                <pre>{{ example.output }}</pre>
+                <button mat-icon-button class="copy-btn" (click)="copyText(example.output)" matTooltip="Copy output">
+                  <mat-icon>content_copy</mat-icon>
+                </button>
+                <h6 *ngIf="example.explanation">Explanation:</h6>
+                <div *ngIf="example.explanation" [innerHTML]="example.explanation | markdown"></div>
+              </div>
+            </div>
           </div>
         </mat-tab>
 
-        <!-- All Submissions Tab -->
-        <mat-tab label="All Submissions">
+        <mat-tab label="Submissions">
           <div class="submissions-panel">
-            <table mat-table [dataSource]="allSubmissions" class="mat-elevation-z8">
+            <div *ngIf="submissions.length === 0" class="empty-state">
+              <mat-icon>inbox</mat-icon>
+              <p>No submissions yet. Write your code and click <strong>Submit</strong>.</p>
+            </div>
+            <table *ngIf="submissions.length > 0" mat-table [dataSource]="submissions" class="mat-elevation-z8">
               <ng-container matColumnDef="verdict">
                 <th mat-header-cell *matHeaderCellDef> Verdict </th>
                 <td mat-cell *matCellDef="let submission"> {{ submission.verdict }} </td>
@@ -107,6 +68,16 @@
                 <td mat-cell *matCellDef="let submission"> {{ submission.language }} </td>
               </ng-container>
 
+              <ng-container matColumnDef="time">
+                <th mat-header-cell *matHeaderCellDef> Time </th>
+                <td mat-cell *matCellDef="let submission"> {{ formatTime(submission.execution_time) }} </td>
+              </ng-container>
+
+              <ng-container matColumnDef="memory">
+                <th mat-header-cell *matHeaderCellDef> Memory </th>
+                <td mat-cell *matCellDef="let submission"> {{ formatMemory(submission.memory_used) }} </td>
+              </ng-container>
+
               <ng-container matColumnDef="view">
                 <th mat-header-cell *matHeaderCellDef> View </th>
                 <td mat-cell *matCellDef="let submission">
@@ -114,43 +85,96 @@
                 </td>
               </ng-container>
 
-              <tr mat-header-row *matHeaderRowDef="['verdict', 'language', 'view']"></tr>
-              <tr mat-row *matRowDef="let row; columns: ['verdict', 'language', 'view'];"></tr>
+              <tr mat-header-row *matHeaderRowDef="submissionColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: submissionColumns;"></tr>
             </table>
           </div>
         </mat-tab>
       </mat-tab-group>
-    </mat-tab>
-  </mat-tab-group>
-  <div class="code-panel">
-    <mat-form-field appearance="fill">
-      <mat-label>Choose Language</mat-label>
-      <mat-select [(ngModel)]="language" (selectionChange)="onLanguageChange($event.value)">
-        <mat-option value="c">C</mat-option>
-        <mat-option value="c++">C++</mat-option>
-        <mat-option value="python">Python</mat-option>
-      </mat-select>
-    </mat-form-field>
+    </as-split-area>
 
-    <div class="code-editor">
-      <textarea [(ngModel)]="code" rows="20" cols="50"></textarea>
-    </div>
+    <as-split-area [size]="55" [minSize]="30">
+      <div class="code-panel">
+        <div class="toolbar">
+          <mat-form-field appearance="fill">
+            <mat-label>Language</mat-label>
+            <mat-select [(ngModel)]="language" (selectionChange)="onLanguageChange($event.value)">
+              <mat-option value="c">C</mat-option>
+              <mat-option value="c++">C++</mat-option>
+              <mat-option value="python">Python</mat-option>
+              <mat-option value="java">Java</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <span class="hint">Ctrl+Enter to Run</span>
+        </div>
 
-    <div class="input-area">
-      <mat-form-field appearance="fill">
-        <mat-label>Input</mat-label>
-        <textarea matInput [(ngModel)]="input_data" rows="5" placeholder="Provide input data..."></textarea>
-      </mat-form-field>
-    </div>
+        <div class="code-editor">
+          <ngx-monaco-editor [options]="editorOptions" [(ngModel)]="code"></ngx-monaco-editor>
+        </div>
 
-    <div class="action-buttons">
-      <button mat-raised-button color="primary" (click)="runCode()">Run</button>
-      <button mat-raised-button color="accent" (click)="submitCode()">Submit</button>
-    </div>
+        <div class="input-area">
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Custom Input</mat-label>
+            <textarea matInput [(ngModel)]="input_data" rows="4" placeholder="Enter input data..."></textarea>
+          </mat-form-field>
+        </div>
 
-    <div *ngIf="output" class="output-area">
-      <h3>Output</h3>
-      <pre>{{ output }}</pre>
-    </div>
-  </div>
+        <div class="action-buttons">
+          <button mat-raised-button color="primary" (click)="runCode()" [disabled]="loadingRun">
+            <mat-icon>play_arrow</mat-icon>
+            <span *ngIf="!loadingRun">Run</span>
+            <mat-spinner *ngIf="loadingRun" diameter="20"></mat-spinner>
+          </button>
+          <button mat-raised-button color="accent" (click)="submitCode()" [disabled]="loadingSubmit">
+            <mat-icon>check_circle</mat-icon>
+            <span *ngIf="!loadingSubmit">Submit</span>
+            <mat-spinner *ngIf="loadingSubmit" diameter="20"></mat-spinner>
+          </button>
+        </div>
+
+        <div *ngIf="judgingStatus" class="judging-indicator">
+          <mat-spinner diameter="16"></mat-spinner>
+          <span>{{ judgingStatus }}</span>
+        </div>
+
+        <div *ngIf="output" class="output-area">
+          <div class="output-header">
+            <h3>Verdict</h3>
+            <button mat-icon-button (click)="copyText(output)" matTooltip="Copy output">
+              <mat-icon>content_copy</mat-icon>
+            </button>
+          </div>
+          <pre [ngClass]="{'passed': output === 'All testcases passed', 'failed': output !== 'All testcases passed'}">{{ output }}</pre>
+        </div>
+
+        <div *ngIf="testResults" class="results-area">
+          <h3>Test Cases</h3>
+          <table class="results-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Input</th>
+                <th>Expected</th>
+                <th>Actual</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let tc of testResults" [ngClass]="{'row-passed': tc.passed, 'row-failed': !tc.passed}">
+                <td>{{ tc.testcase }}</td>
+                <td><pre>{{ tc.input || '(empty)' }}</pre></td>
+                <td><pre>{{ tc.expected || '(empty)' }}</pre></td>
+                <td><pre>{{ tc.error || tc.actual || '(empty)' }}</pre></td>
+                <td>
+                  <span *ngIf="tc.passed" class="badge badge-pass">Passed</span>
+                  <span *ngIf="!tc.passed && !tc.error" class="badge badge-fail">Failed</span>
+                  <span *ngIf="tc.error" class="badge badge-error">Error</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </as-split-area>
+  </as-split>
 </div>

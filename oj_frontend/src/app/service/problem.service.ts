@@ -27,13 +27,8 @@ export class ProblemService {
     return this.http.get(`${this.baseUrl}/main/tags/`)
   }
 
-  getUserSubmissions(id: string): Observable<any> {
-    const params = new HttpParams().set('id', id);
-    return this.http.get(`${this.baseUrl}/main/submissionsUser/`, {params})
-  }
-
-  getProblemSubmissions(id: string): Observable<any> {
-    const params = new HttpParams().set('id', id); 
-    return this.http.get(`${this.baseUrl}/main/submissionsAll/`, {params})
+  getSubmissions(problemId: string): Observable<any> {
+    const params = new HttpParams().set('id', problemId);
+    return this.http.get(`${this.baseUrl}/main/submissions/`, {params})
   }
 }

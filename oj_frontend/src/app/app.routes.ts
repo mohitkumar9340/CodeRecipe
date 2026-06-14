@@ -7,7 +7,7 @@ import { CodeRunComponent } from './code-run/code-run.component';
 import { ProfileComponent } from './profile/profile.component';
 
 export const routes: Routes = [
-    {path: '', redirectTo: 'register-component', pathMatch: 'full'}, 
+    {path: '', redirectTo: 'login-component', pathMatch: 'full'}, 
     {path: 'register-component', component: RegisterComponent},
     {path: 'login-component', component: LoginComponent},
     {path: 'home-component', component: HomeComponent},

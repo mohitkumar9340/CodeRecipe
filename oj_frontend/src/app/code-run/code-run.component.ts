@@ -10,13 +10,20 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatOptionModule } from '@angular/material/core';
 import { CommonModule } from '@angular/common';
-import { CodemirrorModule } from '@ctrl/ngx-codemirror';
 import { AngularSplitModule } from 'angular-split';
 import { MatDividerModule } from '@angular/material/divider';
 import { ProblemService } from '../service/problem.service';
+import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
-
-
+const monacoLanguageMap: { [key: string]: string } = {
+  'Python': 'python',
+  'C++': 'cpp',
+  'C': 'c',
+  'Java': 'java'
+};
 
 @Component({
   selector: 'app-code-run',
@@ -33,15 +40,16 @@ import { ProblemService } from '../service/problem.service';
     MatInputModule,
     MatOptionModule,
     CommonModule,
-    CodemirrorModule,
     AngularSplitModule,
-    MatDividerModule
+    MatDividerModule,
+    MonacoEditorModule,
+    MatProgressSpinnerModule,
+    MatSnackBarModule,
+    MatTooltipModule
   ],
   templateUrl: './code-run.component.html',
   styleUrl: './code-run.component.css'
 })
-
-
 
 export class CodeRunComponent {
   code: string = '';
@@ -50,21 +58,35 @@ export class CodeRunComponent {
   error: string = '';
   cleanError: string = '';
   selectedLanguage: string = 'Python';
-  languages: string[] = ['Python', 'C++', 'C'];
-  languageMap: { [key: string]: string } = { 'Python': 'python', 'C++': 'c++', 'C': 'c' };
-  isResizing: boolean = false;
+  languages: string[] = ['Python', 'C++', 'C', 'Java'];
+  languageMap: { [key: string]: string } = { 'Python': 'python', 'C++': 'c++', 'C': 'c', 'Java': 'java' };
+  loadingRun = false;
+  editorOptions = {
+    theme: 'vs-dark',
+    language: 'python',
+    minimap: { enabled: false },
+    fontSize: 14,
+    automaticLayout: true,
+    scrollBeyondLastLine: false,
+    wordWrap: 'on' as const
+  };
 
   languageSamples: { [key: string]: string } = {
     'Python': `print('Hello, world!')`,
-    'C++': `#include <iostream>\nusing namespace std; \n\nint main() {\n\t cout << "Hello, world!" <<endl;\n\t return 0;\n }`,
-    'C': `#include <stdio.h> \n\nint main() {\n\tprintf("Hello, world!"); \n\treturn 0;\n}`
+    'C++': `#include <iostream>\nusing namespace std;\n\nint main() {\n\tcout << "Hello, world!" << endl;\n\treturn 0;\n}`,
+    'C': `#include <stdio.h>\n\nint main() {\n\tprintf("Hello, world!");\n\treturn 0;\n}`,
+    'Java': `public class Main {\n\tpublic static void main(String[] args) {\n\t\tSystem.out.println("Hello, world!");\n\t}\n}`
   };
 
+  constructor(private elRef: ElementRef, private problemService: ProblemService, private snackBar: MatSnackBar) {
+    this.setSampleCode(this.selectedLanguage); 
+  }
+
   runCode() {
-    // Logic to execute the code based on the selected language
-    this.output = `Running code in ${this.selectedLanguage}...`;
-    console.log('Running code:', this.code);
-    // Implement the logic to run the code
+    this.loadingRun = true;
+    this.output = '';
+    this.error = '';
+    this.cleanError = '';
     const codeData = {
       code: this.code,
       language: this.languageMap[this.selectedLanguage],
@@ -72,28 +94,24 @@ export class CodeRunComponent {
     }
     this.problemService.runCode(codeData).subscribe(
       (data) => {
-        console.log(data)
+        this.loadingRun = false;
         this.error = data.error;
-        this.cleanError = (this.error.replace(/^.*?line \d+\n/, '').trim()).replace(/^.*?:\d+:\d+:\s/, '');
-        this.output = data.output;
+        if (this.error) {
+          this.cleanError = (this.error.replace(/^.*?line \d+\n/, '').trim()).replace(/^.*?:\d+:\d+:\s/, '');
+        }
+        this.output = data.output || '';
       },
       (error) => {
-        console.error('Error fetching problems', error);
+        this.loadingRun = false;
+        this.error = error.error?.error || 'Error executing code';
+        this.cleanError = this.error;
       }
     );
-  }
-
-  startResizing(event: MouseEvent) {
-    this.isResizing = true;
   }
 
   isDragging = false;
   startY: number = 0;
   startHeight: number = 0;
-
-  constructor(private elRef: ElementRef, private problemService: ProblemService) {
-    this.setSampleCode(this.selectedLanguage); 
-  }
 
   @HostListener('document:mousemove', ['$event'])
   onMouseMove(event: MouseEvent) {
@@ -109,6 +127,11 @@ export class CodeRunComponent {
     this.isDragging = false;
   }
 
+  @HostListener('document:keydown.control.enter')
+  handleCtrlEnter() {
+    this.runCode();
+  }
+
   onMouseDown(event: MouseEvent) {
     this.isDragging = true;
     this.startY = event.clientY;
@@ -121,6 +144,13 @@ export class CodeRunComponent {
 
   onLanguageChange(language: string) {
     this.selectedLanguage = language;
+    this.editorOptions = { ...this.editorOptions, language: monacoLanguageMap[language] };
     this.setSampleCode(language);
+  }
+
+  copyText(text: string): void {
+    navigator.clipboard.writeText(text).then(() => {
+      this.snackBar.open('Copied to clipboard', '', { duration: 1500 });
+    });
   }
 }

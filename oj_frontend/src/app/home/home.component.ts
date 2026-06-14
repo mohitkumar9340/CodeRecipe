@@ -20,33 +20,14 @@ import { MatFormField } from '@angular/material/form-field';
 import { PageEvent } from '@angular/material/paginator';
 import { MatPaginatorModule } from '@angular/material/paginator';
 
-
-
-interface Tag {
-  name: string;
-}
 @Component({
   selector: 'app-home',
   standalone: true,
   imports: [
-    RouterLink,
-    CommonModule,
-    MatFormFieldModule,
-    MatListModule,
-    MatIconModule,
-    MatButtonModule,
-    MatCardModule,
-    MatToolbarModule,
-    MatDividerModule,
-    HeaderComponent,
-    MatChipsModule,
-    MatSelectModule,
-    MatSlideToggleModule,
-    FormsModule,
-    MatInputModule,
-    MatFormField,
-    MatPaginatorModule
-
+    RouterLink, CommonModule, MatFormFieldModule, MatListModule, MatIconModule,
+    MatButtonModule, MatCardModule, MatToolbarModule, MatDividerModule,
+    HeaderComponent, MatChipsModule, MatSelectModule, MatSlideToggleModule,
+    FormsModule, MatInputModule, MatFormField, MatPaginatorModule
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
@@ -60,66 +41,79 @@ export class HomeComponent implements OnInit {
   selectedSort: string = 'title';
   difficulties = ['Easy', 'Medium', 'Hard'];
   hideTags: boolean = false;
-  searchQuery: string = '';          // Search input (Define this property)
+  searchQuery: string = '';
   totalProblems = 0;
   currentPage = 1;
-  problemsPerPage: number = 4;
+  problemsPerPage: number = 20;
+  allProblems: any[] = [];
+  progress: { [key: string]: { solved: number; total: number } } = { Easy: { solved: 0, total: 0 }, Medium: { solved: 0, total: 0 }, Hard: { solved: 0, total: 0 } };
+
   constructor(private problemService: ProblemService) { }
+
   ngOnInit(): void {
     this.getProblems(this.currentPage);
-
-    // this.problemService.getProblems(this.currentPage).subscribe(
-    //   (data) => {
-    //     console.log(data)
-    //     this.problems = data;
-    //     this.filteredProblems = data;
-    //   },
-    //   (error) => {
-    //     console.error('Error fetching problems', error);
-    //   }
-    // );
     this.problemService.getTags().subscribe(
-      (data) => {
-        console.log(data)
-        this.allTags = data;
-      },
-      (error) => {
-        console.error('Error fetching tags', error);
-      }
+      (data) => { this.allTags = data; },
+      (error) => { console.error('Error fetching tags', error); }
     );
+    this.loadAllForProgress();
+  }
+
+  loadAllForProgress() {
+    this.problemService.getProblems(1).subscribe((data) => {
+      const total = data.total_problems;
+      const pages = data.total_pages;
+      let collected: any[] = data.problems;
+      if (pages > 1) {
+        const requests = [];
+        for (let p = 2; p <= pages; p++) {
+          requests.push(this.problemService.getProblems(p).toPromise());
+        }
+        Promise.all(requests).then((results: any[]) => {
+          for (const r of results) {
+            collected = collected.concat(r.problems);
+          }
+          this.computeProgress(collected);
+        });
+      } else {
+        this.computeProgress(collected);
+      }
+    });
+  }
+
+  computeProgress(allProblems: any[]) {
+    this.allProblems = allProblems;
+    for (const p of allProblems) {
+      const diff = p.difficulty as keyof typeof this.progress;
+      if (this.progress[diff]) {
+        this.progress[diff].total++;
+        if (p.user_status === 'Solved') this.progress[diff].solved++;
+      }
+    }
   }
 
   getProblems(page: number) {
     this.problemService.getProblems(page).subscribe(
       (data) => {
-        console.log(data)
         this.problems = data.problems;
         this.filteredProblems = data.problems;
         this.totalProblems = data.total_problems;
       },
-      (error) => {
-        console.error('Error fetching problems', error);
-      }
+      (error) => { console.error('Error fetching problems', error); }
     );
   }
 
-
   applyFilters() {
-    console.log('Applying filters', this.searchQuery);
     this.filteredProblems = this.problems.filter((problem) => {
       const matchesSearchQuery = problem.title.toLowerCase().includes(this.searchQuery.toLowerCase());
       const matchesDifficulty = this.selectedDifficulty ? problem.difficulty === this.selectedDifficulty : true;
       const matchesTags = this.selectedTags.length
         ? this.selectedTags.every(tag =>
-          Array.isArray(problem.tag_names) && problem.tag_names.some((pTagName: string) => pTagName === tag)
-        )
+            Array.isArray(problem.tag_names) && problem.tag_names.some((pTagName: string) => pTagName === tag)
+          )
         : true;
-      console.log(this.selectedTags);
-      console.log('Matches search query:', matchesSearchQuery);
-
       return matchesSearchQuery && matchesDifficulty && matchesTags;
     });
-    console.log('Filtered problems:', this.filteredProblems);
   }
 
   applySorting(): void {
@@ -132,8 +126,8 @@ export class HomeComponent implements OnInit {
   }
 
   onPageChange(event: PageEvent) {
-    this.currentPage = event.pageIndex + 1;  // Paginator starts from 0
-    this.problemsPerPage = event.pageSize; 
+    this.currentPage = event.pageIndex + 1;
+    this.problemsPerPage = event.pageSize;
     this.getProblems(this.currentPage);
   }
 }

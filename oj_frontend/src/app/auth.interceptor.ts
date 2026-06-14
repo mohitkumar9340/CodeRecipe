@@ -6,9 +6,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const AuthToken = localStorage.getItem('access_token');
   console.log(req.url)
   console.log("request intercepted :", req)
-  if(req.url != "http://127.0.0.1:8000/auth/login/"){
+  if (AuthToken && !req.url.includes('/auth/login/')) {
     console.log("AuthToken :", AuthToken)
-    const headers = req.headers.append('Authorization', `Bearer ${AuthToken}` ?? '');
+    const headers = req.headers.append('Authorization', `Bearer ${AuthToken}`);
     const authReq = req.clone({ headers });
     console.log("authReq :", authReq)
     return next(authReq);

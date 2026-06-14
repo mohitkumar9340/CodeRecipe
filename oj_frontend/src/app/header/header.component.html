@@ -10,13 +10,11 @@
     </div>
 
     <div class="profile-menu">
-      <!-- Profile Dropdown Button -->
       <button mat-button [matMenuTriggerFor]="profileMenu">
         <mat-icon>account_circle</mat-icon>
-        <span>Profile</span>
+        <span>{{ displayName }}</span>
       </button>
 
-      <!-- Dropdown Menu for Profile and Logout -->
       <mat-menu #profileMenu="matMenu">
         <button mat-menu-item routerLink="/profile">
           <mat-icon>person</mat-icon>

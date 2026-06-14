@@ -1,17 +1,23 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environment'
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProblemService {
 
-  private baseUrl: string = "http://127.0.0.1:8000"
+  private baseUrl: string = environment.baseUrl
   constructor(private http: HttpClient) { }
 
-  getProblems(page: number): Observable<any> {
-    return this.http.get(`${this.baseUrl}/main/problems/?page=${page}`)
+  getProblems(page: number, filters?: { difficulty?: string; search?: string; tags?: string; status?: string }): Observable<any> {
+    let params = new HttpParams().set('page', page);
+    if (filters?.difficulty) params = params.set('difficulty', filters.difficulty);
+    if (filters?.search) params = params.set('search', filters.search);
+    if (filters?.tags) params = params.set('tags', filters.tags);
+    if (filters?.status) params = params.set('status', filters.status);
+    return this.http.get(`${this.baseUrl}/main/problems/`, { params })
   }
 
   getProblemById(id: string): Observable<any> {

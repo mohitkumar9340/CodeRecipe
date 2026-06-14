@@ -112,18 +112,25 @@
 }
 
 .code-editor {
+  flex: 1;
+  min-height: 600px;
   border: 1px solid #ddd;
   border-radius: 6px;
   overflow: hidden;
 }
 
 .code-editor ngx-monaco-editor {
-  height: 400px;
+  height: 100%;
   display: block;
 }
 
 .input-area {
   margin-bottom: 0;
+}
+
+.input-area textarea {
+  resize: vertical;
+  max-height: 300px;
 }
 
 .full-width {

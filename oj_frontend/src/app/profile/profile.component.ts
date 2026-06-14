@@ -95,8 +95,7 @@ export class ProfileComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        // Handle the result from the dialog
-        console.log('Password changed successfully');
+        // Password change submitted
       }
     });
   }

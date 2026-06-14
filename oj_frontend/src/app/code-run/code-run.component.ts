@@ -68,7 +68,8 @@ export class CodeRunComponent {
     fontSize: 14,
     automaticLayout: true,
     scrollBeyondLastLine: false,
-    wordWrap: 'on' as const
+    wordWrap: 'on' as const,
+    padding: { top: 4 }
   };
 
   languageSamples: { [key: string]: string } = {
@@ -125,11 +126,6 @@ export class CodeRunComponent {
   @HostListener('document:mouseup')
   onMouseUp() {
     this.isDragging = false;
-  }
-
-  @HostListener('document:keydown.control.enter')
-  handleCtrlEnter() {
-    this.runCode();
   }
 
   onMouseDown(event: MouseEvent) {

@@ -42,37 +42,31 @@ export class LoginComponent {
   hide =  true;
 
   onSubmit() {
-    
-    console.log("Form submitted",this.username, this.password);
-    this.loginService.login({username: this.username, password: this.password}).subscribe(
-      response => {
-        console.log('Login successful', response);
-
+    this.loginService.login({username: this.username, password: this.password}).subscribe({
+      next: (response) => {
         localStorage.setItem('access_token', response.token.access);
         localStorage.setItem('refresh_token', response.token.refresh);
+        localStorage.setItem('username', response.username);
         this.router.navigate(['/home-component']);
       },
-      error => {
+      error: (error) => {
         console.error('Registration failed', error);
       }
-    );
+    });
   }
 
   guestLogin() {
-    // Handle guest login logic here
-    console.log("Guest login clicked");
-    // For example, you could navigate to a specific page or trigger guest login on the backend.
-    this.guestService.guestLogin({}).subscribe(
-      response => {
-        console.log('Guest login successful', response);
+    this.guestService.guestLogin({}).subscribe({
+      next: (response) => {
         localStorage.setItem('access_token', response.token.access);
         localStorage.setItem('refresh_token', response.token.refresh);
+        localStorage.setItem('username', response.username);
         this.router.navigate(['/home-component']);
       },
-      error => {
+      error: (error) => {
         console.error('Guest login failed', error);
       }
-    );
+    });
   }
 
 }

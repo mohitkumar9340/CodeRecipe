@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener, Inject } from '@angular/core';
+import { Component, OnInit, Inject } from '@angular/core';
 import { ProblemService } from '../service/problem.service';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -53,7 +53,8 @@ export class ProblemComponent implements OnInit {
   judgingStatus: string = '';
   editorOptions = {
     theme: 'vs-dark', language: 'python', minimap: { enabled: false },
-    fontSize: 14, automaticLayout: true, scrollBeyondLastLine: false, wordWrap: 'on' as const
+    fontSize: 14, automaticLayout: true, scrollBeyondLastLine: false, wordWrap: 'on' as const,
+    padding: { top: 4 }
   };
   languageSamples: { [key: string]: string } = {
     'python': `print('Hello, world!')`,
@@ -162,10 +163,6 @@ export class ProblemComponent implements OnInit {
     return seconds.toFixed(3) + 's';
   }
 
-  @HostListener('document:keydown.control.enter')
-  handleCtrlEnter() {
-    this.runCode();
-  }
 }
 
 @Component({

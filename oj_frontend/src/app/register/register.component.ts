@@ -68,39 +68,27 @@ export class RegisterComponent {
   }
 
   onSubmit() {
-    console.log("Form submitted",this.username, this.email, this.password);
-    this.registerService.register({username: this.username, email: this.email, password: this.password}).subscribe(
-      response => {
-        console.log('Registration successful', response);
-        this.router.navigate(['login-component']).then(
-          (nav) => {
-            console.log('Navigation successful:', nav);
-          },
-          (err) => {
-            console.error('Navigation failed:', err);
-          }
-        );
+    this.registerService.register({username: this.username, email: this.email, password: this.password}).subscribe({
+      next: (response) => {
+        this.router.navigate(['login-component']);
       },
-      error => {
+      error: (error) => {
         console.error('Registration failed', error);
       }
-    );
+    });
   }
 
   guestLogin() {
-    // Handle guest login logic here
-    console.log("Guest login clicked");
-    // For example, you could navigate to a specific page or trigger guest login on the backend.
-    this.guestService.guestLogin({}).subscribe(
-      response => {
-        console.log('Guest login successful', response);
+    this.guestService.guestLogin({}).subscribe({
+      next: (response) => {
         localStorage.setItem('access_token', response.token.access);
         localStorage.setItem('refresh_token', response.token.refresh);
+        localStorage.setItem('username', response.username);
         this.router.navigate(['/home-component']);
       },
-      error => {
+      error: (error) => {
         console.error('Guest login failed', error);
       }
-    );
+    });
   }
 }

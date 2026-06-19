@@ -17,4 +17,4 @@ EXPOSE 8000
 ENV DJANGO_SETTINGS_MODULE=oj_backend.settings
 ENV PYTHONUNBUFFERED=1
 
-CMD sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+CMD sh -c "python manage.py migrate && python manage.py seed_problems && gunicorn oj_backend.wsgi:application --bind 0.0.0.0:8000"
